@@ -226,7 +226,7 @@ sudo iptables -I INPUT -p tcp --syn -i eth0 -j DROP<span aria-hidden="true" clas
 date; telnet 192.168.1.108; date   #在telnet命令前后都执行date命令，计算超时时间<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
 
 <h3 id="TCP状态转移"><a href="#TCP状态转移" class="headerlink" title="TCP状态转移"></a>TCP状态转移</h3><p>当前状态可以通过 <code>netstat</code> 查看</p>
-<h4 id="TCP状态转移总图"><a href="#TCP状态转移总图" class="headerlink" title="TCP状态转移总图"></a>TCP状态转移总图</h4><p><img src="C:\Users\lx\Desktop\ztblog\blog2\source\images\tcp-2.jpg" alt="tcp-2"></p>
+<h4 id="TCP状态转移总图"><a href="#TCP状态转移总图" class="headerlink" title="TCP状态转移总图"></a>TCP状态转移总图</h4><p><img src="/images/tcp-2.jpg" alt="tcp-2"></p>
 <h4 id="TIME-WAIT状态"><a href="#TIME-WAIT状态" class="headerlink" title="TIME_WAIT状态"></a>TIME_WAIT状态</h4><p>客户端连接在收到服务器的结束报文段之后，并没有直接进人CLOSED状态，而是转移到TIME_WAIT状态。在这个状态，客户端连接要等待一段长为2MSL的时间，才能完全关闭。</p>
 <p>TIME_WAIT状态存在的原因有两点: 可靠地终止TCP连接；保证让迟来的TCP报文段有足够的时间被识别并丢弃。</p>
 <p>一个连接的新的化身可以在2MSL时间之后安全地建立，而绝对不会接收到属于原来连接的应用程序数据。</p>
