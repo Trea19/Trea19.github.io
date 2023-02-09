@@ -295,10 +295,96 @@ int munmap(void *start, size_t length);<span aria-hidden="true" class="line-numb
 
 
 
-<h2 id="Linux-服务器程序规范"><a href="#Linux-服务器程序规范" class="headerlink" title="Linux 服务器程序规范"></a>Linux 服务器程序规范</h2>
+<h2 id="Linux-服务器程序规范"><a href="#Linux-服务器程序规范" class="headerlink" title="Linux 服务器程序规范"></a>Linux 服务器程序规范</h2><ul>
+<li>后台进程形式运行</li>
+<li>有一套日志系统，至少能输出日志到文件</li>
+<li>一般以非 root 身份运行</li>
+<li>可配置</li>
+<li>服务器进程通常会在启动的时候生成一个 PID 文件 </li>
+<li>考虑系统资源和限制</li>
+</ul>
+<h3 id="日志"><a href="#日志" class="headerlink" title="日志"></a>日志</h3><h4 id="Linux-系统日志"><a href="#Linux-系统日志" class="headerlink" title="Linux 系统日志"></a>Linux 系统日志</h4><p>守护进程 rsyslogd</p>
+<p>rsyslogd 守护进程既能接收用户进程输出的日志，又能接收内核日志。</p>
+<h4 id="syslog-函数"><a href="#syslog-函数" class="headerlink" title="syslog 函数"></a>syslog 函数</h4><pre class="line-numbers language-c++" data-language="c++"><code class="language-c++">void syslog(int priority, const char* message, ...);<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h3 id="用户信息"><a href="#用户信息" class="headerlink" title="用户信息"></a>用户信息</h3><h4 id="UID、EUID、GID-和-EGID"><a href="#UID、EUID、GID-和-EGID" class="headerlink" title="UID、EUID、GID 和 EGID"></a>UID、EUID、GID 和 EGID</h4><p>用户信息对于服务器程序的安全性来说是很重要的，比如大部分服务器就必须以root身份启动，但不能以root身份运行。下面这一组函数可以获取和设置当前进程的真实用户ID(UID)、有效用户ID （EUID)、真实组ID (GID）和有效组ID(EGID)</p>
+<pre class="line-numbers language-c++" data-language="c++"><code class="language-c++">uid_t getuid();    /*获取真实用户ID */
+uid_t geteuid ();  /*获取有效用户ID */
+gid_t getgid ();  /*获取真实组ID*/
+gid_t getegid () ; /*获取有效组ID*/
+int setuid( uid_t uid ) ;
+int seteuid(uid_t uid ) ;
+int setgid( gid_t gid ) ;
+int setegid(gid_t gid ) ;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="进程间关系"><a href="#进程间关系" class="headerlink" title="进程间关系"></a>进程间关系</h3><h4 id="进程组"><a href="#进程组" class="headerlink" title="进程组"></a>进程组</h4><p>Linux 下每个进程都隶属于一个进程组，获取指定进程的 PGID：</p>
+<pre class="line-numbers language-none"><code class="language-none">pid_t getpgid(pid_t pid);<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>设置 PGID：</p>
+<pre class="line-numbers language-c++" data-language="c++"><code class="language-c++">int setpgid(pid_t pid, pid_t pgid);<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h4 id="会话"><a href="#会话" class="headerlink" title="会话"></a>会话</h4><p>一些关联的进程组将形成一个会话（session）</p>
+<pre class="line-numbers language-none"><code class="language-none">pid_t setsid(void);<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h4 id="用-ps-命令查看进程间关系"><a href="#用-ps-命令查看进程间关系" class="headerlink" title="用 ps 命令查看进程间关系"></a>用 ps 命令查看进程间关系</h4><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">ps</span> <span class="token parameter variable">-o</span> pid, ppid, pgid, sid, <span class="token function">comm</span> <span class="token operator">|</span> <span class="token function">less</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h3 id="系统资源限制"><a href="#系统资源限制" class="headerlink" title="系统资源限制"></a>系统资源限制</h3><p>Linux 上运行的程序都会受到资源限制的影响，比如物理设备限制(CPU数量、内存数量等)、系统策略限制（CPU时间等)，以及具体实现的限制（比如文件名的最大长度)</p>
+<pre class="line-numbers language-c++" data-language="c++"><code class="language-c++">int getrlimit(int resource, struct rlimit *rlim);
+int setrlimit(int resource, const struct rlimit *rlim);<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<h3 id="改变工作目录和根目录"><a href="#改变工作目录和根目录" class="headerlink" title="改变工作目录和根目录"></a>改变工作目录和根目录</h3><p>web 服务器的逻辑根目录并非文件系统的根目录”/“, 而是站点的根目录（对于Linux 的web服务器来说， 该目录一般是 /var/www/）</p>
+<pre class="line-numbers language-c++" data-language="c++"><code class="language-c++">char* getcwd(char* buf, size_t size); #获取进程当前工作目录
+int chdir(const char* path); #改变进程工作目录<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<h3 id="服务器程序后台化"><a href="#服务器程序后台化" class="headerlink" title="服务器程序后台化"></a>服务器程序后台化</h3><p>让一个进程以守护进程的方式运行</p>
+<h2 id="高性能服务器程序框架"><a href="#高性能服务器程序框架" class="headerlink" title="高性能服务器程序框架"></a>高性能服务器程序框架</h2><p>三个主要模块：I/O处理单元， 逻辑单元；存储单元。</p>
+<h3 id="服务器模型"><a href="#服务器模型" class="headerlink" title="服务器模型"></a>服务器模型</h3><h4 id="C-S模型"><a href="#C-S模型" class="headerlink" title="C/S模型"></a>C/S模型</h4><p>服务器启动，创建监听socket，bind()绑定到服务器感兴趣的端口，调用listen()等待客户连接。</p>
+<p>服务器稳定运行，客户端connect()向服务器发起连接。</p>
+<p>由于客户连接请求是随机到达的异步事件，服务器需要使用某种I/O模型来监听。</p>
+<h4 id="P2P-模型"><a href="#P2P-模型" class="headerlink" title="P2P 模型"></a>P2P 模型</h4><p>peer to peer</p>
+<p>主机之间，难互相发现，通常有专门的发现服务器</p>
+<h3 id="服务器编程框架"><a href="#服务器编程框架" class="headerlink" title="服务器编程框架"></a>服务器编程框架</h3><table>
+<thead>
+<tr>
+<th>模块</th>
+<th>单个服务器程序</th>
+<th>服务器机群</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>I/O处理单元</td>
+<td>处理客户连接，读写网络程序</td>
+<td>作为接入服务器，实现负载均衡</td>
+</tr>
+<tr>
+<td>逻辑单元</td>
+<td>业务进程或线程</td>
+<td>逻辑服务器</td>
+</tr>
+<tr>
+<td>网络存储单元</td>
+<td>本地数据库、文件或缓存</td>
+<td>数据库服务器</td>
+</tr>
+<tr>
+<td>请求队列</td>
+<td>各单元之间的通信方式</td>
+<td>各服务器之间的永久TCP连接</td>
+</tr>
+</tbody></table>
+<h3 id="I-O-模型"><a href="#I-O-模型" class="headerlink" title="I/O 模型"></a>I/O 模型</h3><p>socket 在创建时默认是阻塞的。针对阻塞I/O执行的系统调用可能因为无法立即完成而被操作系统挂起，直到等待的事件发生为止。socket 的基础API中，可能被阻塞的系统调用包括accept、send、recv和 connect。</p>
+<p>针对非阻塞I/O执行的系统调用则总是立即返回，而不管事件是否已经发生。如果事件没有立即发生，这些系统调用就返回-1，和出错的情况一样。</p>
+<p>很显然，我们只有在事件已经发生的情况下操作非阻塞I/O（读、写等)，才能提高程序的效率。因此，非阻塞I/O通常要和其他I/O通知机制一起使用，比如I/O复用和SIGIO信号。</p>
+<p><strong>I/O复用</strong>是最常使用的I/O通知机制。应用程序通过I/O复用函数向内核注册一组事件，内核通过I/O复用函数把其中就绪的事件通知给应用程序。Linux上常用的I/O复用函数是select、poll和 epoll_wait。I/O复用函数本身是阻塞的，它们能提高程序效率的原因在于它们具有同时监听多个I/O事件的能力。</p>
+<p><strong>SIGIO信号</strong>也可以用来报告I/O事件。可以为一个目标文件描述符指定宿主进程，被指定的宿主进程将捕获到SIGIO信号。这样，当目标文件描述符上有事件发生时，SIGIO信号的信号处理函数将被触发，就可以在该信号处理函数中对目标文件描述符执行非阻塞I/O操作了。</p>
+<p>从理论上说，阻塞I/O、I/O复用和信号驱动I/O都是同步I/O模型。因为在这三种I/O模型中，I/O的读写操作，都是在I/O事件发生之后，由应用程序来完成的。</p>
+<p><strong>异步I/O</strong>，用户可以直接对I/O执行读写操作，这些操作告诉内核用户读写缓冲区的位置，以及I/O操作完成之后内核通知应用程序的方式。异步I/O的读写操作总是立即返回，不论I/O是否是阻塞，因为真正的读写操作已经由内核接管。</p>
+<h3 id="两种高效的事件处理模式"><a href="#两种高效的事件处理模式" class="headerlink" title="两种高效的事件处理模式"></a>两种高效的事件处理模式</h3><p>服务器程序通常需要处理三类事件：I/O事件、信号、定时事件。</p>
+<p>同步I/O模型通常用于实现Reactor模式，异步I/O模型则用于实现Proactor模式。</p>
+<h4 id="Reactor-模式"><a href="#Reactor-模式" class="headerlink" title="Reactor 模式"></a>Reactor 模式</h4>
         </div>
         <div class="top-div">
-          <ol class="top-box"><li class="top-box-item top-box-level-2"><a class="top-box-link" href="#Linux-%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80-API"><span class="top-box-text">Linux 网络编程基础 API</span></a><ol class="top-box-child"><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#socket-%E5%9C%B0%E5%9D%80-API"><span class="top-box-text">socket 地址 API</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#%E5%88%9B%E5%BB%BA-socket"><span class="top-box-text">创建 socket</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#%E5%91%BD%E5%90%8D-socket"><span class="top-box-text">命名 socket</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#%E7%9B%91%E5%90%AC-socket"><span class="top-box-text">监听 socket</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#%E6%8E%A5%E5%8F%97%E8%BF%9E%E6%8E%A5"><span class="top-box-text">接受连接</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#%E5%8F%91%E8%B5%B7%E8%BF%9E%E6%8E%A5"><span class="top-box-text">发起连接</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#%E5%85%B3%E9%97%AD%E8%BF%9E%E6%8E%A5"><span class="top-box-text">关闭连接</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#%E6%95%B0%E6%8D%AE%E8%AF%BB%E5%86%99"><span class="top-box-text">数据读写</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#%E5%B8%A6%E5%A4%96%E6%A0%87%E8%AE%B0"><span class="top-box-text">带外标记</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#%E5%9C%B0%E5%9D%80%E4%BF%A1%E6%81%AF%E5%87%BD%E6%95%B0"><span class="top-box-text">地址信息函数</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#socket-%E9%80%89%E9%A1%B9"><span class="top-box-text">socket 选项</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#%E7%BD%91%E7%BB%9C%E4%BF%A1%E6%81%AF-API"><span class="top-box-text">网络信息 API</span></a></li></ol></li><li class="top-box-item top-box-level-2"><a class="top-box-link" href="#%E9%AB%98%E7%BA%A7-I-O-%E5%87%BD%E6%95%B0"><span class="top-box-text">高级 I&#x2F;O 函数</span></a><ol class="top-box-child"><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#pipe-%E5%87%BD%E6%95%B0"><span class="top-box-text">pipe 函数</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#dup-%E5%87%BD%E6%95%B0%E5%92%8C-dup2-%E5%87%BD%E6%95%B0"><span class="top-box-text">dup 函数和 dup2 函数</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#readv-%E5%87%BD%E6%95%B0%E5%92%8C-writev-%E5%87%BD%E6%95%B0"><span class="top-box-text">readv 函数和 writev 函数</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#sendfile-%E5%87%BD%E6%95%B0"><span class="top-box-text">sendfile 函数</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#mmap-%E5%87%BD%E6%95%B0%E5%92%8C-munmap-%E5%87%BD%E6%95%B0"><span class="top-box-text">mmap 函数和 munmap 函数</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#splice-%E5%87%BD%E6%95%B0"><span class="top-box-text">splice 函数</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#tee%E5%87%BD%E6%95%B0"><span class="top-box-text">tee函数</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#fcntl-%E5%87%BD%E6%95%B0"><span class="top-box-text">fcntl 函数</span></a></li></ol></li><li class="top-box-item top-box-level-2"><a class="top-box-link" href="#Linux-%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%A8%8B%E5%BA%8F%E8%A7%84%E8%8C%83"><span class="top-box-text">Linux 服务器程序规范</span></a></li></ol>
+          <ol class="top-box"><li class="top-box-item top-box-level-2"><a class="top-box-link" href="#Linux-%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E5%9F%BA%E7%A1%80-API"><span class="top-box-text">Linux 网络编程基础 API</span></a><ol class="top-box-child"><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#socket-%E5%9C%B0%E5%9D%80-API"><span class="top-box-text">socket 地址 API</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#%E5%88%9B%E5%BB%BA-socket"><span class="top-box-text">创建 socket</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#%E5%91%BD%E5%90%8D-socket"><span class="top-box-text">命名 socket</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#%E7%9B%91%E5%90%AC-socket"><span class="top-box-text">监听 socket</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#%E6%8E%A5%E5%8F%97%E8%BF%9E%E6%8E%A5"><span class="top-box-text">接受连接</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#%E5%8F%91%E8%B5%B7%E8%BF%9E%E6%8E%A5"><span class="top-box-text">发起连接</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#%E5%85%B3%E9%97%AD%E8%BF%9E%E6%8E%A5"><span class="top-box-text">关闭连接</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#%E6%95%B0%E6%8D%AE%E8%AF%BB%E5%86%99"><span class="top-box-text">数据读写</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#%E5%B8%A6%E5%A4%96%E6%A0%87%E8%AE%B0"><span class="top-box-text">带外标记</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#%E5%9C%B0%E5%9D%80%E4%BF%A1%E6%81%AF%E5%87%BD%E6%95%B0"><span class="top-box-text">地址信息函数</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#socket-%E9%80%89%E9%A1%B9"><span class="top-box-text">socket 选项</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#%E7%BD%91%E7%BB%9C%E4%BF%A1%E6%81%AF-API"><span class="top-box-text">网络信息 API</span></a></li></ol></li><li class="top-box-item top-box-level-2"><a class="top-box-link" href="#%E9%AB%98%E7%BA%A7-I-O-%E5%87%BD%E6%95%B0"><span class="top-box-text">高级 I&#x2F;O 函数</span></a><ol class="top-box-child"><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#pipe-%E5%87%BD%E6%95%B0"><span class="top-box-text">pipe 函数</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#dup-%E5%87%BD%E6%95%B0%E5%92%8C-dup2-%E5%87%BD%E6%95%B0"><span class="top-box-text">dup 函数和 dup2 函数</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#readv-%E5%87%BD%E6%95%B0%E5%92%8C-writev-%E5%87%BD%E6%95%B0"><span class="top-box-text">readv 函数和 writev 函数</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#sendfile-%E5%87%BD%E6%95%B0"><span class="top-box-text">sendfile 函数</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#mmap-%E5%87%BD%E6%95%B0%E5%92%8C-munmap-%E5%87%BD%E6%95%B0"><span class="top-box-text">mmap 函数和 munmap 函数</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#splice-%E5%87%BD%E6%95%B0"><span class="top-box-text">splice 函数</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#tee%E5%87%BD%E6%95%B0"><span class="top-box-text">tee函数</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#fcntl-%E5%87%BD%E6%95%B0"><span class="top-box-text">fcntl 函数</span></a></li></ol></li><li class="top-box-item top-box-level-2"><a class="top-box-link" href="#Linux-%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%A8%8B%E5%BA%8F%E8%A7%84%E8%8C%83"><span class="top-box-text">Linux 服务器程序规范</span></a><ol class="top-box-child"><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#%E6%97%A5%E5%BF%97"><span class="top-box-text">日志</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#%E7%94%A8%E6%88%B7%E4%BF%A1%E6%81%AF"><span class="top-box-text">用户信息</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#%E8%BF%9B%E7%A8%8B%E9%97%B4%E5%85%B3%E7%B3%BB"><span class="top-box-text">进程间关系</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#%E7%B3%BB%E7%BB%9F%E8%B5%84%E6%BA%90%E9%99%90%E5%88%B6"><span class="top-box-text">系统资源限制</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#%E6%94%B9%E5%8F%98%E5%B7%A5%E4%BD%9C%E7%9B%AE%E5%BD%95%E5%92%8C%E6%A0%B9%E7%9B%AE%E5%BD%95"><span class="top-box-text">改变工作目录和根目录</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%A8%8B%E5%BA%8F%E5%90%8E%E5%8F%B0%E5%8C%96"><span class="top-box-text">服务器程序后台化</span></a></li></ol></li><li class="top-box-item top-box-level-2"><a class="top-box-link" href="#%E9%AB%98%E6%80%A7%E8%83%BD%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%A8%8B%E5%BA%8F%E6%A1%86%E6%9E%B6"><span class="top-box-text">高性能服务器程序框架</span></a><ol class="top-box-child"><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%A8%A1%E5%9E%8B"><span class="top-box-text">服务器模型</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%BC%96%E7%A8%8B%E6%A1%86%E6%9E%B6"><span class="top-box-text">服务器编程框架</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#I-O-%E6%A8%A1%E5%9E%8B"><span class="top-box-text">I&#x2F;O 模型</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#%E4%B8%A4%E7%A7%8D%E9%AB%98%E6%95%88%E7%9A%84%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E6%A8%A1%E5%BC%8F"><span class="top-box-text">两种高效的事件处理模式</span></a></li></ol></li></ol>
         </div>
       </div>
     </div>
