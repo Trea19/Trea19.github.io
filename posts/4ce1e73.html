@@ -113,7 +113,7 @@
       <div class="post-content-wrapper">
         <div class="post-content">
           <p>schedule of lectures and due dates: <a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.824/schedule.html">https://pdos.csail.mit.edu/6.824/schedule.html</a></p>
-<h3 id="Lecture-1-Introduction"><a href="#Lecture-1-Introduction" class="headerlink" title="Lecture 1: Introduction"></a>Lecture 1: Introduction</h3><h4 id="Drivens-and-Challenges"><a href="#Drivens-and-Challenges" class="headerlink" title="Drivens and Challenges"></a>Drivens and Challenges</h4><p>What I mean by “distributed system”:</p>
+<h2 id="Lecture-1-Introduction"><a href="#Lecture-1-Introduction" class="headerlink" title="Lecture 1: Introduction"></a>Lecture 1: Introduction</h2><h3 id="Drivens-and-Challenges"><a href="#Drivens-and-Challenges" class="headerlink" title="Drivens and Challenges"></a>Drivens and Challenges</h3><p>What I mean by “distributed system”:</p>
 <blockquote>
 <p>  a group of computers cooperating to provide a service<br>  this class is mostly about infrastructure services<br>    e.g. storage for big web sites, MapReduce, peer-to-peer sharing<br>  lots of important infrastructure is distributed</p>
 </blockquote>
@@ -129,9 +129,9 @@
 <blockquote>
 <p>  interesting – hard problems, powerful solutions<br>  widely used – driven by the rise of big Web sites<br>  active research area – important unsolved problems<br>  challenging to build – you’ll do it in the labs</p>
 </blockquote>
-<h4 id="Labs"><a href="#Labs" class="headerlink" title="Labs"></a>Labs</h4><p>Warning: debugging the labs can be time-consuming  <span class="github-emoji"><span>😇</span><img src="https://github.githubassets.com/images/icons/emoji/unicode/1f607.png?v8" aria-hidden="true" onerror="this.parent.classList.add('github-emoji-fallback')"></span></p>
+<h3 id="Labs"><a href="#Labs" class="headerlink" title="Labs"></a>Labs</h3><p>Warning: debugging the labs can be time-consuming  <span class="github-emoji"><span>😇</span><img src="https://github.githubassets.com/images/icons/emoji/unicode/1f607.png?v8" aria-hidden="true" onerror="this.parent.classList.add('github-emoji-fallback')"></span></p>
 <p>Lab 1: distributed big-data framework (like MapReduce)<br>Lab 2: fault tolerance using replication (Raft)<br>Lab 3: a simple fault-tolerant database<br>Lab 4: scalable database performance via sharding</p>
-<h4 id="Main-topics"><a href="#Main-topics" class="headerlink" title="Main topics"></a>Main topics</h4><p>This is a course about infrastructure for applications.</p>
+<h3 id="Main-topics"><a href="#Main-topics" class="headerlink" title="Main topics"></a>Main topics</h3><p>This is a course about infrastructure for applications.</p>
 <ul>
 <li>Storage.</li>
 <li>Communication.</li>
@@ -143,11 +143,11 @@
 <p><strong>Topic: performance</strong><br>    The goal: scalable throughput<br>        Nx servers -&gt; Nx total throughput via parallel CPU, RAM, disk, net.<br>    Scaling gets harder as N grows:<br>        Load imbalance.<br>        Slowest-of-N latency.<br>        Some things don’t speed up with N: initialization, interaction.</p>
 <p><strong>Topic: tradeoffs</strong><br>    Fault-tolerance, consistency, and performance are enemies.<br>    Fault tolerance and consistency require communication<br>        e.g. send data to backup server<br>        e.g. check if cached data is up-to-date<br>    communication is often slow and non-scalable<br>    Many designs provide only weak consistency, to gain speed.<br>        e.g. Get() might <em>not</em> yield the latest Put()!<br>    Painful for application programmers but may be a good trade-off.<br>    We’ll see many design points in the consistency / performance spectrum.</p>
 <p><strong>Topic: implementation</strong><br>    RPC, threads, concurrency control, configuration.</p>
-<h3 id="MapReduce"><a href="#MapReduce" class="headerlink" title="MapReduce"></a>MapReduce</h3><p><a href="/_post/">Let’s talk about MapReduce (MR)</a></p>
+<h3 id="MapReduce"><a href="#MapReduce" class="headerlink" title="MapReduce"></a>MapReduce</h3><p><a href="https://trea19.github.io/posts/63e5d8d3.html">Let’s talk about MapReduce (MR)</a></p>
 
         </div>
         <div class="top-div">
-          <ol class="top-box"><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#Lecture-1-Introduction"><span class="top-box-text">Lecture 1: Introduction</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#MapReduce"><span class="top-box-text">MapReduce</span></a></li></ol>
+          <ol class="top-box"><li class="top-box-item top-box-level-2"><a class="top-box-link" href="#Lecture-1-Introduction"><span class="top-box-text">Lecture 1: Introduction</span></a><ol class="top-box-child"><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#Drivens-and-Challenges"><span class="top-box-text">Drivens and Challenges</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#Labs"><span class="top-box-text">Labs</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#Main-topics"><span class="top-box-text">Main topics</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#MapReduce"><span class="top-box-text">MapReduce</span></a></li></ol></li></ol>
         </div>
       </div>
     </div>

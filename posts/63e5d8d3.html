@@ -9,7 +9,7 @@
 
 <title>paper-reading | MapReduce</title>
 <meta name="keywords" content="paper-reading | MapReduce, Tappan">
-<meta name="description" content="">
+<meta name="description" content="Simplified Data Processing on Large Clusters">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -119,10 +119,45 @@
       </div>
       <div class="post-content-wrapper">
         <div class="post-content">
-          
+          <p><strong>MapReduce: Simplified Data Processing on Large Clusters</strong> (2004)</p>
+<h2 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h2><p>context: multi-hour computations on multi-terabyte data-sets</p>
+<blockquote>
+<p>e.g. build search index, or sort, or analyze structure of web<br>       only practical with 1000s of computers<br>       applications not written by distributed systems experts</p>
+</blockquote>
+<p>big goal: easy for non-specialist programmers</p>
+<blockquote>
+<p>programmer just defines Map and Reduce functions<br>often fairly simple sequential code</p>
+</blockquote>
+<p>MR manages, and hides, all aspects of distribution!</p>
+<h2 id="Abstract-view"><a href="#Abstract-view" class="headerlink" title="Abstract view"></a>Abstract view</h2><p>abstract view of a MapReduce job – word count</p>
+<pre class="line-numbers language-none"><code class="language-none">Input1 -&gt; Map -&gt; a,1 b,1
+Input2 -&gt; Map -&gt;     b,1
+Input3 -&gt; Map -&gt; a,1     c,1
+                  |   |   |
+                  |   |   -&gt; Reduce -&gt; c,1
+                  |   -----&gt; Reduce -&gt; b,2
+                  ---------&gt; Reduce -&gt; a,2<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<ol>
+<li>input is (already) split into M files</li>
+<li>MR calls Map() for each input file, produces list of k,v pairs<br>“intermediate” data<br>each Map() call is a “task”</li>
+<li>when Maps are done,<br>MR gathers all intermediate v’s for each k,<br>and passes each key + values to a Reduce call</li>
+<li>final output is set of &lt;k,v&gt; pairs from Reduce()s</li>
+</ol>
+<p><strong>Word-count-specific code</strong></p>
+<ul>
+<li>Map(k, v)<pre><code>split v into words
+for each word w
+  emit(w, "1")
+</code></pre>
+</li>
+<li>Reduce(k, v_list)<pre><code>emit(len(v_list))
+</code></pre>
+</li>
+</ul>
+
         </div>
         <div class="top-div">
-          
+          <ol class="top-box"><li class="top-box-item top-box-level-2"><a class="top-box-link" href="#Overview"><span class="top-box-text">Overview</span></a></li><li class="top-box-item top-box-level-2"><a class="top-box-link" href="#Abstract-view"><span class="top-box-text">Abstract view</span></a></li></ol>
         </div>
       </div>
     </div>
