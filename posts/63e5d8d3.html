@@ -90,7 +90,7 @@
       
       <h2 class="post-title">paper-reading | MapReduce</h2>
       <div class="post-info post-detail-info">
-        <span><i class="icon icon-calendar-outline"></i> 2023-02-11</span>
+        <span><i class="icon icon-calendar-outline"></i> 2023-02-15</span>
         
           <span>
           <i class="icon icon-pricetags-outline"></i>
@@ -119,8 +119,8 @@
       </div>
       <div class="post-content-wrapper">
         <div class="post-content">
-          <p><strong>MapReduce: Simplified Data Processing on Large Clusters</strong> (2004)</p>
-<h2><span id="get-started">Get started</span></h2><p>ref: <a target="_blank" rel="noopener" href="http://ccr.sigcomm.org/online/files/p83-keshavA.pdf">How to read one paper</a></p>
+          <h2><span id="get-started">Get started</span></h2><p>resource: <a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.824/papers/mapreduce.pdf"><strong>MapReduce: Simplified Data Processing on Large Clusters</strong> (2004)</a></p>
+<p>ref: <a target="_blank" rel="noopener" href="http://ccr.sigcomm.org/online/files/p83-keshavA.pdf">How to read one paper</a></p>
 <p>The first pass: a quick scan to get a bird’s-eye view of the paper. (5-10min)</p>
 <ol>
 <li><p>Carefully read the title, abstract, and introduction </p>
@@ -142,8 +142,7 @@
 <li>Identify and challenge every assumption in every statement</li>
 <li>Think about how you yourself would present a particular idea</li>
 </ol>
-<h2><span id="overview">Overview</span></h2><p><img src="/images/mapreduce.png" alt="Execution Overview"></p>
-<p>context: multi-hour computations on multi-terabyte data-sets</p>
+<h2><span id="overview">Overview</span></h2><p>context: multi-hour computations on multi-terabyte data-sets</p>
 <blockquote>
 <p>e.g. build search index, or sort, or analyze structure of web<br>       only practical with 1000s of computers<br>       applications not written by distributed systems experts</p>
 </blockquote>
@@ -152,6 +151,23 @@
 <p>programmer just defines Map and Reduce functions<br>often fairly simple sequential code</p>
 </blockquote>
 <p>MR manages, and hides, all aspects of distribution!</p>
+<p><img src="/images/mapreduce.png" alt="Execution Overview"></p>
+<ol>
+<li><p>用户程序中的 MapReduce 库首先将输入文件切分为M块，每块的大小一般为16MB-64MB，然后 MapReduce 库会在一个集群的若干台机器上启动程序的多个副本；</p>
+</li>
+<li><p>程序的各个副本中有一个 master ，其它的是 worker 。主节点将 M 个 map 任务和 R 个 reduce 任务分配给空闲的 worker，每个节点一项任务；</p>
+</li>
+<li><p>被分配 map 任务的工作节点读取对应的 input file，从中解析出 key/value pairs，然后将每个pair 传递给用户定义的 map 函数。由 map 函数产生的中间 key/value pairs 都缓存在内存中；</p>
+</li>
+<li><p>缓存的数据对会被周期性的由划分函数分成 R 块，并写入本地磁盘中。这些缓存对在本地磁盘中的位置会被传回给 master，master 负责将这些位置再传给 reduce 节点；</p>
+</li>
+<li><p>当一个 reduce 节点得到 master的位置通知后，它使用 RPC 调用去读 map 节点的本地磁盘中的缓存数据。当 reduce 节点读取完了所有的中间数据，它会将这些数据按中间 key 排序，这样相同 key 的数据就被排列在一起。如果中间数据数量过多，不能全部载入内存，则会使用外部排序 （shuffle）；</p>
+</li>
+<li><p>reduce 节点遍历排序好的中间数据，并将遇到的每个中间 key 和与它关联的一组中间 value 传递给用户的reduce 函数，reduce 将数据对应的 key 合并后返回最终数据；</p>
+</li>
+<li><p>当所有的 map 和 reduce 任务都完成后，主节点唤醒用户程序，此时用户程序中的 MapReduce 调用返回到用户代码中。</p>
+</li>
+</ol>
 <h2><span id="abstract-view">Abstract view</span></h2><p>abstract view of a MapReduce job – word count</p>
 <pre class="line-numbers language-none"><code class="language-none">Input1 -&gt; Map -&gt; a,1 b,1
 Input2 -&gt; Map -&gt;     b,1
@@ -177,6 +193,11 @@ for each word w
 </code></pre>
 </li>
 </ul>
+<p><del>看了大半才发现<a href="cnblogs.com/fuzhe1989/p/3413457.html">中翻</a> 猛女落泪</del>  </p>
+<p><del>虽然本人英语较菜，但感觉还是原汁原味舒服</del></p>
+<p>可以关注下paper里提高性能的一些trick，还挺有意思的 <span class="github-emoji"><span>😇</span><img src="https://github.githubassets.com/images/icons/emoji/unicode/1f607.png?v8" aria-hidden="true" onerror="this.parent.classList.add('github-emoji-fallback')"></span> 比如：</p>
+<p>网络带宽通常是稀缺的资源，那么我们就应该减少网络数据的发送，因此可以局部性优化，在本地先处理、合并中间数据，减少网络上的数据传送量；</p>
+<p>最末尾的 process-in 数据往往最影响总进度（straggler），因为很可能出现了影响进度的 bug，因此可以创建多个副本，多耗费一些资源，但提高效率。</p>
 
         </div>
         <div class="top-div">

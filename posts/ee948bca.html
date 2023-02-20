@@ -90,7 +90,7 @@
       
       <h2 class="post-title">MIT6.824 Lab1 | MapReduce</h2>
       <div class="post-info post-detail-info">
-        <span><i class="icon icon-calendar-outline"></i> 2023-02-12</span>
+        <span><i class="icon icon-calendar-outline"></i> 2023-02-20</span>
         
           <span>
           <i class="icon icon-pricetags-outline"></i>
@@ -127,8 +127,26 @@
       <div class="post-content-wrapper">
         <div class="post-content">
           <h3><span id="introduction">Introduction</span></h3><p>In this lab I’ll build a MapReduce system: implement a worker process that calls application Map and Reduce functions and handles reading and writing files, and a coordinator process that hands out tasks to workers and copes with failed workers. </p>
-<h3><span id="getting-started">Getting started</span></h3><p>Assignment: <a target="_blank" rel="noopener" href="http://nil.csail.mit.edu/6.824/2020/schedule.html">http://nil.csail.mit.edu/6.824/2020/schedule.html</a></p>
-<h3><span id="my-job">My job</span></h3>
+<h3><span id="getting-started">Getting started</span></h3><p><strong>Assignment</strong>: <a target="_blank" rel="noopener" href="http://nil.csail.mit.edu/6.824/2020/schedule.html">http://nil.csail.mit.edu/6.824/2020/schedule.html</a></p>
+<p><strong>Go</strong>: <a target="_blank" rel="noopener" href="https://tour.go-zh.org/welcome/1">https://tour.go-zh.org/welcome/1</a></p>
+<p><strong>MapReduce</strong>: <a href="https://trea19.github.io/posts/63e5d8d3.html">https://trea19.github.io/posts/63e5d8d3.html</a></p>
+<h3><span id="my-job">My job</span></h3><p>Implement a distributed MapReduce by modifying <code>mr/worker.go</code>, <code>mr/master.go</code>, and <code>mr/rpc.go</code>. There will be just one master process, and one or more worker processes executing in parallel.</p>
+<p>In this lab you’ll run worker processes all on a single machine. The workers will talk to the master via RPC. </p>
+<ul>
+<li><p>fault tolerant:</p>
+<p>The master should notice if a worker hasn’t completed its task in a reasonable amount of time (for this lab, use ten seconds), and give the same task to a different worker.</p>
+</li>
+</ul>
+<p><del>以下切换为中文hohoho</del></p>
+<p>理理思路</p>
+<ol>
+<li><p>worker 和 master 间的 RPC 交互。 </p>
+<p><code>main/mrworker.go</code> 会调用 <code>mr/Worker</code> 方法</p>
+<p><code>Worker()</code> 调用 <code>CallExample()</code>,  </p>
+<p><code>CallExample()</code>里的<code>call("Master.Example", &amp;args, &amp;reply)</code>方法调用<code>mr/master</code>的<code>Example()</code></p>
+</li>
+</ol>
+
         </div>
         <div class="top-div">
           <ol class="top-box"><li class="top-box-item top-box-level-3"><a class="top-box-link"><span class="top-box-text">Introduction</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link"><span class="top-box-text">Getting started</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link"><span class="top-box-text">My job</span></a></li></ol>
