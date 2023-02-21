@@ -126,30 +126,65 @@
       </div>
       <div class="post-content-wrapper">
         <div class="post-content">
-          <h3><span id="introduction">Introduction</span></h3><p>In this lab I’ll build a MapReduce system: implement a worker process that calls application Map and Reduce functions and handles reading and writing files, and a coordinator process that hands out tasks to workers and copes with failed workers. </p>
+          <h3><span id="introduction">Introduction</span></h3><p><em>In</em> this lab I’ll build a MapReduce system: implement a worker process that calls application Map and Reduce functions and handles reading and writing files, and a coordinator process that hands out tasks to workers and copes with failed workers. </p>
 <h3><span id="getting-started">Getting started</span></h3><p><strong>Assignment</strong>: <a target="_blank" rel="noopener" href="http://nil.csail.mit.edu/6.824/2020/schedule.html">http://nil.csail.mit.edu/6.824/2020/schedule.html</a></p>
 <p><strong>Go</strong>: <a target="_blank" rel="noopener" href="https://tour.go-zh.org/welcome/1">https://tour.go-zh.org/welcome/1</a></p>
 <p><strong>MapReduce</strong>: <a href="https://trea19.github.io/posts/63e5d8d3.html">https://trea19.github.io/posts/63e5d8d3.html</a></p>
-<h3><span id="my-job">My job</span></h3><p>Implement a distributed MapReduce by modifying <code>mr/worker.go</code>, <code>mr/master.go</code>, and <code>mr/rpc.go</code>. There will be just one master process, and one or more worker processes executing in parallel.</p>
+<p>Implement a distributed MapReduce by modifying <code>mr/worker.go</code>, <code>mr/master.go</code>, and <code>mr/rpc.go</code>. There will be just one master process, and one or more worker processes executing in parallel.</p>
 <p>In this lab you’ll run worker processes all on a single machine. The workers will talk to the master via RPC. </p>
+<p><strong>rules</strong></p>
 <ul>
-<li><p>fault tolerant:</p>
-<p>The master should notice if a worker hasn’t completed its task in a reasonable amount of time (for this lab, use ten seconds), and give the same task to a different worker.</p>
-</li>
+<li>The map phase should divide the intermediate keys into buckets for <code>nReduce</code> reduce tasks</li>
+<li>Output of the X’th reduce task will be put in the file <code>mr-out-X</code>.</li>
+<li>Have a look in <code>main/mrsequential.go</code> for the correct format of the file <code>mr-out-X</code></li>
+<li>The worker should put intermediate Map output in files in the current directory</li>
+<li><code>main/mrmaster.go</code> expects <code>mr/master.go</code> to implement a <code>Done()</code> method</li>
+<li> The worker processes should exit</li>
 </ul>
-<p><del>以下切换为中文hohoho</del></p>
-<p>理理思路</p>
-<ol>
-<li><p>worker 和 master 间的 RPC 交互。 </p>
-<p><code>main/mrworker.go</code> 会调用 <code>mr/Worker</code> 方法</p>
-<p><code>Worker()</code> 调用 <code>CallExample()</code>,  </p>
-<p><code>CallExample()</code>里的<code>call("Master.Example", &amp;args, &amp;reply)</code>方法调用<code>mr/master</code>的<code>Example()</code></p>
-</li>
-</ol>
+<p><strong>hints</strong></p>
+<ul>
+<li>If you change anything in the <code>mr/</code> directory, re-build any MapReduce plugins you use, with something like <code>go build -buildmode=plugin ../mrapps/wc.go</code></li>
+<li>A reasonable naming convention for intermediate files is <code>mr-X-Y</code>, where X is the Map task number, and Y is the reduce task number. One possibility is to write key/value pairs to a JSON file using Go’s <code>encoding/json</code> package</li>
+<li>The map part of your worker can use the <code>ihash(key)</code> function (in <code>worker.go</code>) to pick the reduce task for a given key</li>
+<li>Steal some code from <code>mrsequential.go</code> for reading Map input files, for sorting intermedate key/value pairs between the Map and Reduce, and for storing Reduce output in files</li>
+<li>Lock shared data (master)</li>
+<li>Workers will sometimes need to wait</li>
+<li>Have the master wait for some amount of time, and then give up and re-issue the task to a different worker. For this lab, have the master wait for ten seconds</li>
+</ul>
+<h3><span id="implementation">Implementation</span></h3><p>according to the <em>Collaboration Policy</em>, this blog only shows some code blocks</p>
+<p><strong>1. modify <code>mr/worker.go</code>‘s <code>Worker()</code> to send an RPC to the master asking for a task</strong></p>
+<p><strong>2. modify the master to respond with the file name of an as-yet-unstarted map task</strong></p>
+<ul>
+<li><p>master 分配任务时应该上锁，防止多个 worker 竞争，并用 defer 推迟解锁 （并发控制）</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go">mu<span class="token punctuation">.</span><span class="token function">Lock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">defer</span> mu<span class="token punctuation">.</span><span class="token function">Unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre></li>
+<li><p>用信道来传递 map / reduce 任务（并发控制），过程大致如下：将 map 任务管道中的任务取出，如果取不出来，说明任务已经取尽，此时任务要么已经完成，要么就是正在进行。所以还需要判断 map 任务是否已经完成，如果完成那么应该进入下一个 Reduce 阶段。Reduce 阶段的任务分配规律与 map 一致，如果完成，进入 AllDone 阶段</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">switch</span> m<span class="token punctuation">.</span>current_phase <span class="token punctuation">{</span>
+	<span class="token keyword">case</span> MapPhase<span class="token punctuation">:</span>
+		<span class="token punctuation">{</span>
+			<span class="token keyword">if</span> <span class="token function">len</span><span class="token punctuation">(</span>map_task_channel<span class="token punctuation">)</span> <span class="token operator">&gt;</span> <span class="token number">0</span> <span class="token punctuation">{</span>
+				<span class="token operator">*</span>reply <span class="token operator">=</span> <span class="token operator">*</span><span class="token operator">&lt;-</span> m<span class="token punctuation">.</span>map_task_channel
 
+				<span class="token keyword">if</span> <span class="token operator">!</span>m<span class="token punctuation">.</span>task_meta_hold<span class="token punctuation">.</span><span class="token function">judgeState</span><span class="token punctuation">(</span>reply<span class="token punctuation">.</span>task_id<span class="token punctuation">)</span><span class="token punctuation">{</span>
+					fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">"Map task is still running..."</span><span class="token punctuation">)</span>
+				<span class="token punctuation">}</span>
+			<span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+				reply<span class="token punctuation">.</span>task_type <span class="token operator">=</span> waiting_task
+				<span class="token keyword">if</span> m<span class="token punctuation">.</span>task_meta_hold<span class="token punctuation">.</span><span class="token function">checkTaskDone</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+					m<span class="token punctuation">.</span><span class="token function">toNextPhase</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+				<span class="token punctuation">}</span>
+				<span class="token keyword">return</span> <span class="token boolean">nil</span>
+			<span class="token punctuation">}</span>
+		<span class="token punctuation">}</span>
+    
+   <span class="token operator">...</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></li>
+<li></li>
+</ul>
+<p><strong>3. modify the worker to read that file and call the application Map function</strong></p>
+<h3><span id="test">Test</span></h3>
         </div>
         <div class="top-div">
-          <ol class="top-box"><li class="top-box-item top-box-level-3"><a class="top-box-link"><span class="top-box-text">Introduction</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link"><span class="top-box-text">Getting started</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link"><span class="top-box-text">My job</span></a></li></ol>
+          <ol class="top-box"><li class="top-box-item top-box-level-3"><a class="top-box-link"><span class="top-box-text">Introduction</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link"><span class="top-box-text">Getting started</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link"><span class="top-box-text">Implementation</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link"><span class="top-box-text">Test</span></a></li></ol>
         </div>
       </div>
     </div>
