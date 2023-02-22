@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    
+
+<script>!function(){var e=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,t=localStorage.getItem("use-color-scheme")||"auto";("dark"===t||e&&"light"!==t)&&document.documentElement.classList.toggle("dark",!0)}()</script>
+
+<meta charset="utf-8" >
+
+<title>paper-reading | GFS</title>
+<meta name="keywords" content="paper-reading | GFS, Tappan">
+<meta name="description" content="Google File System">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<link rel="shortcut icon" href="/favicon.ico">
+<link rel="stylesheet" href="/style/main.css">
+
+
+<link rel="stylesheet" href="/style/jquery.fancybox.min.css">
+
+
+
+
+    <link rel="stylesheet" href="/style/prism.css"/>
+
+
+
+
+  <meta name="generator" content="Hexo 5.4.2"></head>
+  <body>
+    <div id="app" class="main">
+
+<div class="site-header-container">
+  <div class="site-header">
+    <div class="left">
+      <a href="http://trea19.github.io">
+        <img class="avatar" src="/images/avatar.png" alt="" width="32px" height="32px">
+      </a>
+      <a href="http://trea19.github.io">
+        <h1 class="site-title">Tappan</h1>
+      </a>
+    </div>
+    <div class="right">
+        <i class="icon menu-switch icon-menu-outline" ></i>
+    </div>
+  </div>
+</div>
+
+<div class="menu-container" style="height: 0;opacity: 0;">
+<nav class="menu-list">
+  
+    
+      <a href="/" class="menu purple-link">
+        首页
+      </a>
+    
+  
+    
+      <a href="/tags" class="menu purple-link">
+        标签
+      </a>
+    
+  
+    
+      <a href="/categories" class="menu purple-link">
+        分类
+      </a>
+    
+  
+    
+      <a href="/archives" class="menu purple-link">
+        归档
+      </a>
+    
+  
+    
+      <a href="/about" class="menu purple-link">
+        关于
+      </a>
+    
+  
+</nav>
+</div>
+
+
+
+  <div class="content-container">
+    <div class="post-detail">
+      
+      <h2 class="post-title">paper-reading | GFS</h2>
+      <div class="post-info post-detail-info">
+        <span><i class="icon icon-calendar-outline"></i> 2023-02-22</span>
+        
+          <span>
+          <i class="icon icon-pricetags-outline"></i>
+            
+              <a href="/tags/Distributed-Systems/">
+              Distributed Systems
+                
+                  ，
+                
+              </a>
+            
+              <a href="/tags/GFS/">
+              GFS
+                
+                  ，
+                
+              </a>
+            
+              <a href="/tags/paper-reading/">
+              paper-reading
+                
+              </a>
+            
+          </span>
+        
+      </div>
+      <div class="post-content-wrapper">
+        <div class="post-content">
+          <p><a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.824/papers/gfs.pdf">The Google File System</a> (SOSP 2003)</p>
+<blockquote>
+<p>GFS paper touches on many themes<br>parallel performance, fault tolerance, replication, consistency<br>good systems paper – details from apps all the way to network<br>successful real-world design</p>
+</blockquote>
+<p>BIG</p>
+<p>FAST</p>
+<p>GLOBAL</p>
+<p>SHARDING </p>
+<p>AUTOMATIC RECOVERY</p>
+<h2><span id="gfs-context">GFS Context</span></h2><p>Google 拥有远超过单个磁盘容量的数据，例如从整个互联网爬出来的网页，YouTube视频，用来构建搜索索引的中间文件，Web服务器中的大量日志文件等。所以，Google有大量的数据，需要大量的磁盘来存储这些数据，并且需要能借助MapReduce这样的工具来快速处理这些数据。所以，Google需要能够快速的并行访问这些海量数据。</p>
+<p>Google的目标是构建一个大型的，快速的文件系统。一个全局通用的存储系统，意味着如果我存储了大量从互联网抓取的数据，你也可以通过申请权限来查看这些数据，因为我们都使用了同一个存储系统。这样，任何在Google内部的人员都可以根据名字读取这个文件系统（GFS）中可被共享的内容。</p>
+<h2><span id="gfs-overview">GFS Overview</span></h2><p><img src="/images/gfs-1.png" alt="gfs-1"></p>
+<h3><span id="读文件过程">读文件过程</span></h3><p><img src="/images/gfs-9.png" alt="gfs-9"></p>
+<ol>
+<li>应用程序或者GFS客户端有一个文件名和它想从文件的某个位置读取的偏移量（offset），应用程序会将这些信息发送给Master节点</li>
+<li>Master节点会从自己的file表单中查询文件名，得到Chunk ID的数组 （因为每个Chunk是64MB，所以偏移量除以64MB就可以从数组中得到对应的Chunk ID），之后Master再从Chunk表单中找到存有Chunk的服务器列表，并将列表返回给客户端</li>
+<li>客户端会选择一个网络上最近的服务器，并将读请求发送到那个服务器，客户端会与选出的Chunk服务器通信，将Chunk Handle和偏移量发送给那个Chunk服务器</li>
+<li>Chunk服务器会在本地的硬盘上，将每个Chunk存储成独立的Linux文件，并通过普通的Linux文件系统管理。Chunk服务器根据文件名找到对应的Chunk文件，之后从文件中读取对应的数据段，并将数据返回给客户端。</li>
+</ol>
+<h3><span id="写文件过程">写文件过程</span></h3><p><img src="/images/gfs-10.png" alt="gfs-10"></p>
+<ol>
+<li>客户端会向Master节点发送请求说：我想向这个文件名对应的文件追加数据，请告诉我文件中最后一个Chunk的位置</li>
+<li>对于写文件来说，必须要通过Chunk的主副本（Primary Chunk）来写入，Master节点找出最新的Chunk副本，并告诉客户端向其（也就是Primary Chunk所在的服务器）去做追加操作，每个Chunk可能同时有多个副本，最新的副本是指，副本中保存的版本号与Master中记录的Chunk的版本号一致（如果Master节点来发现Chunk的主副本不存在，Master会找出所有存有Chunk最新副本的Chunk服务器）。Master节点会向Primary和Secondary副本对应的服务器发送消息并告诉它们，谁是Primary，谁是Secondary，Chunk的新版本是什么。Primary和Secondary服务器都会将版本号存储在本地的磁盘中。</li>
+<li></li>
+</ol>
+<h2><span id="tricks">Tricks</span></h2><p><img src="/images/gfs-2.png" alt="gfs-2"></p>
+<p><img src="/images/gfs-3.png" alt="gfs-3"></p>
+<p><img src="/images/gfs-4.png" alt="gfs-4"></p>
+<p><img src="/images/gfs-5.png" alt="gfs-5"></p>
+<p><img src="/images/gfs-6.png" alt="gfs-6"></p>
+<p><img src="/images/gfs-7.png" alt="gfs-7"></p>
+<p><img src="/images/gfs-8.png" alt="gfs-8"></p>
+
+        </div>
+        <div class="top-div">
+          <ol class="top-box"><li class="top-box-item top-box-level-2"><a class="top-box-link"><span class="top-box-text">GFS Context</span></a></li><li class="top-box-item top-box-level-2"><a class="top-box-link"><span class="top-box-text">GFS Overview</span></a><ol class="top-box-child"><li class="top-box-item top-box-level-3"><a class="top-box-link"><span class="top-box-text">读文件过程</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link"><span class="top-box-text">写文件过程</span></a></li></ol></li><li class="top-box-item top-box-level-2"><a class="top-box-link"><span class="top-box-text">Tricks</span></a></li></ol>
+        </div>
+      </div>
+    </div>
+
+    
+      <div class="next-post">
+        <a class="purple-link" href="/posts/ee948bca.html">
+          <h3 class="post-title">
+            下一篇：MIT6.824 Lab1 | MapReduce
+          </h3>
+        </a>
+      </div>
+    
+  </div>
+
+
+
+
+<footer>
+<div class="site-footer">
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/Trea19" target="_blank">
+          <i class="icon icon-github"></i>
+        </a>
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+  
+    Powered by <a href="https://hexo.io/" target="_blank">Hexo</a> <a href="https://github.com/f-dong/hexo-theme-minimalism" target="_blank">Theme</a>
+  
+  
+  
+  
+  
+  
+</div>
+</footer>
+
+
+      </div>
+      
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/jquery.fancybox.min.js"></script>
+
+
+
+    <script>window.is_post = true;</script>
+
+
+<script src="/js/main.js"></script>
+
+
+
+
+
+    </div>
+  </body>
+</html>
+
