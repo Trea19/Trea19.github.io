@@ -108,7 +108,7 @@
       <div class="post-content-wrapper">
         <div class="post-content">
           <p>resource: <a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.824/schedule.html">https://pdos.csail.mit.edu/6.824/schedule.html</a></p>
-<h2><span id="lecture-1-introduction">Lecture 1: Introduction</span></h2><h3><span id="drivens-and-challenges">Drivens and Challenges</span></h3><p>What I mean by “distributed system”:</p>
+<h2 id="Lecture-1-Introduction"><a href="#Lecture-1-Introduction" class="headerlink" title="Lecture 1: Introduction"></a>Lecture 1: Introduction</h2><h3 id="Drivens-and-Challenges"><a href="#Drivens-and-Challenges" class="headerlink" title="Drivens and Challenges"></a>Drivens and Challenges</h3><p>What I mean by “distributed system”:</p>
 <blockquote>
 <p>  a group of computers cooperating to provide a service<br>  this class is mostly about infrastructure services<br>    e.g. storage for big web sites, MapReduce, peer-to-peer sharing<br>  lots of important infrastructure is distributed</p>
 </blockquote>
@@ -127,7 +127,7 @@
 <blockquote>
 <p>  interesting – hard problems, powerful solutions<br>  widely used – driven by the rise of big Web sites<br>  active research area – important unsolved problems<br>  challenging to build – you’ll do it in the labs</p>
 </blockquote>
-<h3><span id="main-topics">Main topics</span></h3><p>This is a course about infrastructure for applications.</p>
+<h3 id="Main-topics"><a href="#Main-topics" class="headerlink" title="Main topics"></a>Main topics</h3><p>This is a course about infrastructure for applications.</p>
 <ul>
 <li>Storage.</li>
 <li>Communication.</li>
@@ -139,9 +139,9 @@
 <p><strong>Topic: performance</strong><br>    The goal: scalable throughput<br>        - Nx servers -&gt; Nx total throughput via parallel CPU, RAM, disk, net.<br>    Scaling gets harder as N grows:<br>        - Load imbalance.<br>        - Slowest-of-N latency.<br>        - Some things don’t speed up with N: initialization, interaction.</p>
 <p><strong>Topic: tradeoffs</strong><br>    Fault-tolerance, consistency, and performance are enemies.<br>    Fault tolerance and consistency require communication<br>    communication is often slow and non-scalable<br>    Many designs provide only weak consistency, to gain speed.</p>
 <p><strong>Topic: implementation</strong><br>    RPC, threads, concurrency control, configuration.</p>
-<h3><span id="mapreduce">MapReduce</span></h3><p><a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.824/papers/mapreduce.pdf">MapReduce(MR) - paper</a></p>
+<h3 id="MapReduce"><a href="#MapReduce" class="headerlink" title="MapReduce"></a>MapReduce</h3><p><a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.824/papers/mapreduce.pdf">MapReduce(MR) - paper</a></p>
 <p><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1bx411v71z/?spm_id_from=333.337.search-card.all.click">video helps understand</a></p>
-<h2><span id="lecture-2-gfs">Lecture 2: GFS</span></h2><p>here’s an interesting cycle:</p>
+<h2 id="Lecture-2-GFS"><a href="#Lecture-2-GFS" class="headerlink" title="Lecture 2: GFS"></a>Lecture 2: GFS</h2><p>here’s an interesting cycle:</p>
 <p>performance -&gt; sharding -&gt; faults -&gt; tolerance -&gt; repcication -&gt; inconsistency -&gt; consistency -&gt; low performance</p>
 <p>GFS is a good distributed instance</p>
 <p><a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.824/papers/gfs.pdf">Google File System (GFS) - paper</a></p>
@@ -149,7 +149,7 @@
 
         </div>
         <div class="top-div">
-          <ol class="top-box"><li class="top-box-item top-box-level-2"><a class="top-box-link"><span class="top-box-text">Lecture 1: Introduction</span></a><ol class="top-box-child"><li class="top-box-item top-box-level-3"><a class="top-box-link"><span class="top-box-text">Drivens and Challenges</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link"><span class="top-box-text">Main topics</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link"><span class="top-box-text">MapReduce</span></a></li></ol></li><li class="top-box-item top-box-level-2"><a class="top-box-link"><span class="top-box-text">Lecture 2: GFS</span></a></li></ol>
+          <ol class="top-box"><li class="top-box-item top-box-level-2"><a class="top-box-link" href="#Lecture-1-Introduction"><span class="top-box-text">Lecture 1: Introduction</span></a><ol class="top-box-child"><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#Drivens-and-Challenges"><span class="top-box-text">Drivens and Challenges</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#Main-topics"><span class="top-box-text">Main topics</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link" href="#MapReduce"><span class="top-box-text">MapReduce</span></a></li></ol></li><li class="top-box-item top-box-level-2"><a class="top-box-link" href="#Lecture-2-GFS"><span class="top-box-text">Lecture 2: GFS</span></a></li></ol>
         </div>
       </div>
     </div>
