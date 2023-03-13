@@ -9,7 +9,7 @@
 
 <title>MIT6.824 Distributed Systems Engineering</title>
 <meta name="keywords" content="MIT6.824 Distributed Systems Engineering, Tappan">
-<meta name="description" content="DUE: 5.5">
+<meta name="description" content="课程笔记 （更新至L2, 暂时搁置）">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -35,7 +35,7 @@
   <div class="site-header">
     <div class="left">
       <a href="http://trea19.github.io">
-        <img class="avatar" src="/images/avatar.png" alt="" width="32px" height="32px">
+        <img class="avatar" src="/images/avatar.png" alt="logo" width="32px" height="32px">
       </a>
       <a href="http://trea19.github.io">
         <h1 class="site-title">Tappan</h1>
@@ -78,20 +78,27 @@
       
       <h2 class="post-title">MIT6.824 Distributed Systems Engineering</h2>
       <div class="post-info post-detail-info">
-        <span><i class="icon icon-calendar-outline"></i> 2023-02-11</span>
+        <span><i class="icon icon-calendar-outline"></i> 2023-03-02</span>
         
           <span>
           <i class="icon icon-pricetags-outline"></i>
             
-              <a href="/tags/Distributed-Systems/">
-              Distributed Systems
+              <a href="/tags/mit-6-824/">
+              mit 6.824
                 
                   ，
                 
               </a>
             
-              <a href="/tags/MIT6-824/">
-              MIT6.824
+              <a href="/tags/distributed-system/">
+              distributed system
+                
+                  ，
+                
+              </a>
+            
+              <a href="/tags/notes/">
+              notes
                 
               </a>
             
@@ -100,25 +107,26 @@
       </div>
       <div class="post-content-wrapper">
         <div class="post-content">
-          <p>schedule of lectures and due dates: <a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.824/schedule.html">https://pdos.csail.mit.edu/6.824/schedule.html</a></p>
+          <p>resource: <a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.824/schedule.html">https://pdos.csail.mit.edu/6.824/schedule.html</a></p>
 <h2><span id="lecture-1-introduction">Lecture 1: Introduction</span></h2><h3><span id="drivens-and-challenges">Drivens and Challenges</span></h3><p>What I mean by “distributed system”:</p>
 <blockquote>
 <p>  a group of computers cooperating to provide a service<br>  this class is mostly about infrastructure services<br>    e.g. storage for big web sites, MapReduce, peer-to-peer sharing<br>  lots of important infrastructure is distributed</p>
 </blockquote>
+<p>&nbsp;</p>
 <p>Why do people build distributed systems?</p>
 <blockquote>
-<p>  to increase capacity via parallel processing<br>  to tolerate faults via replication<br>  to match distribution of physical devices e.g. sensors<br>  to increase security via isolation</p>
+<p>  to increase capacity via parallel processing<br>  to tolerate faults via replication<br>  to match distribution of physical devices<br>  to increase security via isolation</p>
 </blockquote>
+<p>&nbsp;</p>
 <p>But it’s not easy:</p>
 <blockquote>
 <p>  concurrency<br>  complex interactions<br>  partial failure<br>  hard to get high performance</p>
 </blockquote>
+<p>&nbsp;</p>
 <p>Why study this topic?</p>
 <blockquote>
 <p>  interesting – hard problems, powerful solutions<br>  widely used – driven by the rise of big Web sites<br>  active research area – important unsolved problems<br>  challenging to build – you’ll do it in the labs</p>
 </blockquote>
-<h3><span id="labs">Labs</span></h3><p>Warning: debugging the labs can be time-consuming  <span class="github-emoji"><span>😇</span><img src="https://github.githubassets.com/images/icons/emoji/unicode/1f607.png?v8" aria-hidden="true" onerror="this.parent.classList.add('github-emoji-fallback')"></span></p>
-<p>Lab 1: distributed big-data framework (like MapReduce)<br>Lab 2: fault tolerance using replication (Raft)<br>Lab 3: a simple fault-tolerant database<br>Lab 4: scalable database performance via sharding</p>
 <h3><span id="main-topics">Main topics</span></h3><p>This is a course about infrastructure for applications.</p>
 <ul>
 <li>Storage.</li>
@@ -126,34 +134,31 @@
 <li>Computation.</li>
 </ul>
 <p>A big goal: hide the complexity of distribution from applications.</p>
-<p><strong>Topic: fault tolerance</strong><br>    1000s of servers, big network -&gt; always something broken<br>        We’d like to hide these failures from the application.<br>        “High availability”: service continues despite failures<br>     Big idea: replicated servers.<br>        If one server crashes, can proceed using the other(s).</p>
-<p><strong>Topic: consistency</strong><br>    General-purpose infrastructure needs well-defined behavior.<br>        e.g. “Get(key) yields the value from the most recent Put(key,value).”<br>     Achieving good behavior is hard!<br>        e.g. “Replica” servers are hard to keep identical.</p>
-<p><strong>Topic: performance</strong><br>    The goal: scalable throughput<br>        Nx servers -&gt; Nx total throughput via parallel CPU, RAM, disk, net.<br>    Scaling gets harder as N grows:<br>        Load imbalance.<br>        Slowest-of-N latency.<br>        Some things don’t speed up with N: initialization, interaction.</p>
-<p><strong>Topic: tradeoffs</strong><br>    Fault-tolerance, consistency, and performance are enemies.<br>    Fault tolerance and consistency require communication<br>        e.g. send data to backup server<br>        e.g. check if cached data is up-to-date<br>    communication is often slow and non-scalable<br>    Many designs provide only weak consistency, to gain speed.<br>        e.g. Get() might <em>not</em> yield the latest Put()!<br>    Painful for application programmers but may be a good trade-off.<br>    We’ll see many design points in the consistency / performance spectrum.</p>
+<p><strong>Topic: fault tolerance</strong><br>    1000s of servers, big network -&gt; always something broken<br>    Big idea: replicated servers.      </p>
+<p><strong>Topic: consistency</strong><br>    General-purpose infrastructure needs well-defined behavior.<br>     Achieving good behavior is hard!      </p>
+<p><strong>Topic: performance</strong><br>    The goal: scalable throughput<br>        - Nx servers -&gt; Nx total throughput via parallel CPU, RAM, disk, net.<br>    Scaling gets harder as N grows:<br>        - Load imbalance.<br>        - Slowest-of-N latency.<br>        - Some things don’t speed up with N: initialization, interaction.</p>
+<p><strong>Topic: tradeoffs</strong><br>    Fault-tolerance, consistency, and performance are enemies.<br>    Fault tolerance and consistency require communication<br>    communication is often slow and non-scalable<br>    Many designs provide only weak consistency, to gain speed.</p>
 <p><strong>Topic: implementation</strong><br>    RPC, threads, concurrency control, configuration.</p>
-<h3><span id="mapreduce">MapReduce</span></h3><p><a href="https://trea19.github.io/posts/63e5d8d3.html">Let’s talk about MapReduce (MR)</a></p>
-<p><a href="https://trea19.github.io/posts/ee948bca.html">Lab1: build a MapReduce system</a></p>
-<h2><span id="lecture-2-gfs">Lecture 2: GFS</span></h2><p>6.824中介绍了有趣的循环（我们的出发点是追求更高的性能）：</p>
-<p>PERFORMANCE -&gt; SHARDING</p>
-<p>FAULTS -&gt; TOLERANCE</p>
-<p>TOLERANCE -&gt; REPCICATION</p>
-<p>REPCICATION -&gt; INCONSISTENCY</p>
-<p>CONSISTENCY -&gt; LOW PERFORMANCE</p>
-<p>现实中，如果你想要好的一致性，你就要付出相应的代价，如果你不想付出代价，那就要忍受一些不确定的行为。</p>
-<p><a href="https://trea19.github.io/posts/ded5aa9a.html">Let’s talk about the Google File System (GFS)</a></p>
+<h3><span id="mapreduce">MapReduce</span></h3><p><a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.824/papers/mapreduce.pdf">MapReduce(MR) - paper</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1bx411v71z/?spm_id_from=333.337.search-card.all.click">video helps understand</a></p>
+<h2><span id="lecture-2-gfs">Lecture 2: GFS</span></h2><p>here’s an interesting cycle:</p>
+<p>performance -&gt; sharding -&gt; faults -&gt; tolerance -&gt; repcication -&gt; inconsistency -&gt; consistency -&gt; low performance</p>
+<p>GFS is a good distributed instance</p>
+<p><a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.824/papers/gfs.pdf">Google File System (GFS) - paper</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1Lx411v7gx/?spm_id_from=333.337.search-card.all.click">video helps understand</a></p>
 
         </div>
         <div class="top-div">
-          <ol class="top-box"><li class="top-box-item top-box-level-2"><a class="top-box-link"><span class="top-box-text">Lecture 1: Introduction</span></a><ol class="top-box-child"><li class="top-box-item top-box-level-3"><a class="top-box-link"><span class="top-box-text">Drivens and Challenges</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link"><span class="top-box-text">Labs</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link"><span class="top-box-text">Main topics</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link"><span class="top-box-text">MapReduce</span></a></li></ol></li><li class="top-box-item top-box-level-2"><a class="top-box-link"><span class="top-box-text">Lecture 2: GFS</span></a></li></ol>
+          <ol class="top-box"><li class="top-box-item top-box-level-2"><a class="top-box-link"><span class="top-box-text">Lecture 1: Introduction</span></a><ol class="top-box-child"><li class="top-box-item top-box-level-3"><a class="top-box-link"><span class="top-box-text">Drivens and Challenges</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link"><span class="top-box-text">Main topics</span></a></li><li class="top-box-item top-box-level-3"><a class="top-box-link"><span class="top-box-text">MapReduce</span></a></li></ol></li><li class="top-box-item top-box-level-2"><a class="top-box-link"><span class="top-box-text">Lecture 2: GFS</span></a></li></ol>
         </div>
       </div>
     </div>
 
     
       <div class="next-post">
-        <a class="purple-link" href="/posts/840c1969.html">
+        <a class="purple-link" href="/posts/1e67aeb6.html">
           <h3 class="post-title">
-            下一篇：解析高性能服务器编程
+            下一篇：How to Read One Paper
           </h3>
         </a>
       </div>
@@ -200,9 +205,10 @@
     <script src="/js/jquery.fancybox.min.js"></script>
 
 
-
-    <script>window.is_post = true;</script>
-
+<script id="hexo-configurations">
+    window.theme_config = {"image":{"lazyload_enable":false}};
+    window.is_post = true;
+  </script>
 
 <script src="/js/main.js"></script>
 
